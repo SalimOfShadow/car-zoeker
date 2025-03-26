@@ -1,10 +1,12 @@
+import asyncio
 import time
 
 from ultralytics import YOLO
 import cv2
 import easyocr
 
-from util import license_complies_format
+from utils.util import license_complies_format
+from utils.fetch_vehicle_data import fetch_vehicle_data
 
 reader = easyocr.Reader(['en'], gpu=False)
 
@@ -48,9 +50,11 @@ while ret:
                     if ocr_score >= 0.7:
                         # Print the license plate text
                         if license_complies_format(text):
-                            text = text.replace(" ", "").replace("-", "").replace("'","")
-                            print(f"License Plate: {text} confidence : {ocr_score}")
-                            
+                            license_plate = text.replace(" ", "").replace("-", "").replace("'","").upper()
+
+                            car_details = asyncio.run(fetch_vehicle_data(license_plate))
+                            if car_details["error"] == False:
+                                print(f"License Plate: {car_details['license_plate']}, the car's model is : {car_details['vehicle_brand'], car_details['vehicle_model']}")
                         else:
                             print(f"{text} did not comply")       
             # Draw the bounding box and label
