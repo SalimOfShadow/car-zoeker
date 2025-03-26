@@ -177,5 +177,4 @@ cython_debug/
 # Project specific
 
 *.mp4
-*.pt
 *.onnx
