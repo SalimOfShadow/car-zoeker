@@ -1,3 +1,4 @@
+import torch
 from ultralytics import YOLO
 import cv2
 
@@ -13,6 +14,7 @@ mot_tracker = Sort()
 # load models
 coco_model = YOLO('yolov8n.pt')
 license_plate_detector = YOLO('./models/license_plate_detector.pt')
+ckpt = torch.load("yolov8n.pt", map_location='cpu', weights_only=False)
 
 # load video
 cap = cv2.VideoCapture('./sample.mp4')
@@ -27,7 +29,7 @@ while ret:
     ret, frame = cap.read()
     if ret:
         results[frame_nmr] = {}
-        # detect vehicles
+        # detect vehiclesx
         detections = coco_model(frame)[0]
         detections_ = []
         for detection in detections.boxes.data.tolist():

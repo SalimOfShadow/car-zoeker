@@ -58,9 +58,11 @@ def write_csv(results, output_path):
         f.close()
 
 
+import string
+
 def license_complies_format(text):
     """
-    Check if the license plate text complies with the required format.
+    Check if the license plate text complies with the required Dutch format.
 
     Args:
         text (str): License plate text.
@@ -68,24 +70,17 @@ def license_complies_format(text):
     Returns:
         bool: True if the license plate complies with the format, False otherwise.
     """
-    if len(text) != 7:
-        return False
-
-    if (text[0] in string.ascii_uppercase or text[0] in dict_int_to_char.keys()) and \
-       (text[1] in string.ascii_uppercase or text[1] in dict_int_to_char.keys()) and \
-       (text[2] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[2] in dict_char_to_int.keys()) and \
-       (text[3] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[3] in dict_char_to_int.keys()) and \
-       (text[4] in string.ascii_uppercase or text[4] in dict_int_to_char.keys()) and \
-       (text[5] in string.ascii_uppercase or text[5] in dict_int_to_char.keys()) and \
-       (text[6] in string.ascii_uppercase or text[6] in dict_int_to_char.keys()):
-        return True
-    else:
-        return False
-
+    # Remove any spaces or hyphens for consistency
+    text = text.replace(" ", "").replace("-", "").replace("'","")
+    
+    # The valid length of a Dutch license plate is 6 or 7 characters
+    if len(text) == 6 and all(c in string.ascii_letters + string.digits for c in text):
+            return True
+    return False
 
 def format_license(text):
     """
-    Format the license plate text by converting characters using the mapping dictionaries.
+    Format the license plate text by converting characters according to Dutch format.
 
     Args:
         text (str): License plate text.
@@ -93,16 +88,46 @@ def format_license(text):
     Returns:
         str: Formatted license plate text.
     """
-    license_plate_ = ''
-    mapping = {0: dict_int_to_char, 1: dict_int_to_char, 4: dict_int_to_char, 5: dict_int_to_char, 6: dict_int_to_char,
-               2: dict_char_to_int, 3: dict_char_to_int}
-    for j in [0, 1, 2, 3, 4, 5, 6]:
-        if text[j] in mapping[j].keys():
-            license_plate_ += mapping[j][text[j]]
-        else:
-            license_plate_ += text[j]
+    # Remove any spaces or hyphens for consistency
+    text = text.replace(" ", "").replace("-", "")
 
-    return license_plate_
+    # If it's in a 6-character format, format accordingly
+    if len(text) == 6:
+        if (text[0] in string.ascii_uppercase and
+            text[1] in string.ascii_uppercase and
+            text[2] in string.digits and
+            text[3] in string.digits and
+            text[4] in string.ascii_uppercase and
+            text[5] in string.ascii_uppercase):
+            return f"{text[0]}{text[1]}-{text[2]}{text[3]}-{text[4]}{text[5]}"
+        elif (text[0] in string.digits and
+              text[1] in string.digits and
+              text[2] in string.ascii_uppercase and
+              text[3] in string.ascii_uppercase and
+              text[4] in string.digits and
+              text[5] in string.digits):
+            return f"{text[0]}{text[1]}-{text[2]}{text[3]}-{text[4]}{text[5]}"
+
+    # If it's in a 7-character format, format accordingly
+    elif len(text) == 7:
+        if (text[0] in string.ascii_uppercase and
+            text[1] in string.ascii_uppercase and
+            text[2] in string.ascii_uppercase and
+            text[3] in string.digits and
+            text[4] in string.digits and
+            text[5] in string.ascii_uppercase and
+            text[6] in string.ascii_uppercase):
+            return f"{text[0]}{text[1]}{text[2]}-{text[3]}{text[4]}-{text[5]}{text[6]}"
+        elif (text[0] in string.digits and
+              text[1] in string.digits and
+              text[2] in string.ascii_uppercase and
+              text[3] in string.ascii_uppercase and
+              text[4] in string.digits and
+              text[5] in string.digits and
+              text[6] in string.ascii_uppercase):
+            return f"{text[0]}{text[1]}-{text[2]}{text[3]}-{text[4]}{text[5]}{text[6]}"
+
+    return text
 
 
 def read_license_plate(license_plate_crop):
