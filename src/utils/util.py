@@ -1,10 +1,11 @@
 import string
 import easyocr
+import string
 
 # Initialize the OCR reader
 reader = easyocr.Reader(['en'], gpu=False)
 
-# Mapping dictionaries for character conversion
+# Mapping dictionaries for potential character conversion
 dict_char_to_int = {'O': '0',
                     'I': '1',
                     'J': '3',
@@ -20,136 +21,27 @@ dict_int_to_char = {'0': 'O',
                     '5': 'S'}
 
 
-def write_csv(results, output_path):
-    """
-    Write the results to a CSV file.
 
-    Args:
-        results (dict): Dictionary containing the results.
-        output_path (str): Path to the output CSV file.
-    """
-    with open(output_path, 'w') as f:
-        f.write('{},{},{},{},{},{},{}\n'.format('frame_nmr', 'car_id', 'car_bbox',
-                                                'license_plate_bbox', 'license_plate_bbox_score', 'license_number',
-                                                'license_number_score'))
-
-        for frame_nmr in results.keys():
-            for car_id in results[frame_nmr].keys():
-                print(results[frame_nmr][car_id])
-                if 'car' in results[frame_nmr][car_id].keys() and \
-                   'license_plate' in results[frame_nmr][car_id].keys() and \
-                   'text' in results[frame_nmr][car_id]['license_plate'].keys():
-                    f.write('{},{},{},{},{},{},{}\n'.format(frame_nmr,
-                                                            car_id,
-                                                            '[{} {} {} {}]'.format(
-                                                                results[frame_nmr][car_id]['car']['bbox'][0],
-                                                                results[frame_nmr][car_id]['car']['bbox'][1],
-                                                                results[frame_nmr][car_id]['car']['bbox'][2],
-                                                                results[frame_nmr][car_id]['car']['bbox'][3]),
-                                                            '[{} {} {} {}]'.format(
-                                                                results[frame_nmr][car_id]['license_plate']['bbox'][0],
-                                                                results[frame_nmr][car_id]['license_plate']['bbox'][1],
-                                                                results[frame_nmr][car_id]['license_plate']['bbox'][2],
-                                                                results[frame_nmr][car_id]['license_plate']['bbox'][3]),
-                                                            results[frame_nmr][car_id]['license_plate']['bbox_score'],
-                                                            results[frame_nmr][car_id]['license_plate']['text'],
-                                                            results[frame_nmr][car_id]['license_plate']['text_score'])
-                            )
-        f.close()
-
-
-import string
 
 def license_complies_format(text):
-    """
-    Check if the license plate text complies with the required Dutch format.
-
-    Args:
-        text (str): License plate text.
-
-    Returns:
-        bool: True if the license plate complies with the format, False otherwise.
-    """
-    # Remove any spaces or hyphens for consistency
-    text = text.replace(" ", "").replace("-", "").replace("'","")
-    
     # The valid length of a Dutch license plate is 6 or 7 characters
     if len(text) == 6 and all(c in string.ascii_letters + string.digits for c in text):
             return True
     return False
 
-def format_license(text):
-    """
-    Format the license plate text by converting characters according to Dutch format.
-
-    Args:
-        text (str): License plate text.
-
-    Returns:
-        str: Formatted license plate text.
-    """
-    # Remove any spaces or hyphens for consistency
-    text = text.replace(" ", "").replace("-", "")
-
-    # If it's in a 6-character format, format accordingly
-    if len(text) == 6:
-        if (text[0] in string.ascii_uppercase and
-            text[1] in string.ascii_uppercase and
-            text[2] in string.digits and
-            text[3] in string.digits and
-            text[4] in string.ascii_uppercase and
-            text[5] in string.ascii_uppercase):
-            return f"{text[0]}{text[1]}-{text[2]}{text[3]}-{text[4]}{text[5]}"
-        elif (text[0] in string.digits and
-              text[1] in string.digits and
-              text[2] in string.ascii_uppercase and
-              text[3] in string.ascii_uppercase and
-              text[4] in string.digits and
-              text[5] in string.digits):
-            return f"{text[0]}{text[1]}-{text[2]}{text[3]}-{text[4]}{text[5]}"
-
-    # If it's in a 7-character format, format accordingly
-    elif len(text) == 7:
-        if (text[0] in string.ascii_uppercase and
-            text[1] in string.ascii_uppercase and
-            text[2] in string.ascii_uppercase and
-            text[3] in string.digits and
-            text[4] in string.digits and
-            text[5] in string.ascii_uppercase and
-            text[6] in string.ascii_uppercase):
-            return f"{text[0]}{text[1]}{text[2]}-{text[3]}{text[4]}-{text[5]}{text[6]}"
-        elif (text[0] in string.digits and
-              text[1] in string.digits and
-              text[2] in string.ascii_uppercase and
-              text[3] in string.ascii_uppercase and
-              text[4] in string.digits and
-              text[5] in string.digits and
-              text[6] in string.ascii_uppercase):
-            return f"{text[0]}{text[1]}-{text[2]}{text[3]}-{text[4]}{text[5]}{text[6]}"
-
-    return text
 
 
 def read_license_plate(license_plate_crop):
-    """
-    Read the license plate text from the given cropped image.
-
-    Args:
-        license_plate_crop (PIL.Image.Image): Cropped image containing the license plate.
-
-    Returns:
-        tuple: Tuple containing the formatted license plate text and its confidence score.
-    """
 
     detections = reader.readtext(license_plate_crop)
 
     for detection in detections:
         bbox, text, score = detection
 
-        text = text.upper().replace(' ', '')
+        text = text.replace(" ", "").replace("-", "").replace("'","").upper()
 
         if license_complies_format(text):
-            return format_license(text), score
+            return text, score
 
     return None, None
 

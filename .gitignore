@@ -178,3 +178,4 @@ cython_debug/
 
 *.mp4
 *.onnx
+.vscode
