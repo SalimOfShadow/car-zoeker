@@ -1,6 +1,7 @@
 ultralytics
-opencv-python
 numpy
-scipy
 easyocr
-filterpy
+opencv-python-headless
+fastapi
+uvicorn==0.22.0
+python-multipart

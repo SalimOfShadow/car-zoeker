@@ -1,12 +1,11 @@
-import asyncio
-from fastapi import FastAPI, UploadFile, File
 import cv2
 import numpy as np
 from io import BytesIO
 from ultralytics import YOLO
-from utils.util import read_license_plate
-from utils.fetch_vehicle_data import fetch_vehicle_data
+from src.utils.util import read_license_plate
+from src.utils.fetch_vehicle_data import fetch_vehicle_data
 
+from fastapi import FastAPI, UploadFile, File
 app = FastAPI()
 
 license_plate_detector = YOLO('./models/license_plate_detector.pt')
@@ -57,6 +56,8 @@ async def upload_image(file: UploadFile = File(...)):
     
     except Exception as e:
         return {"error": str(e)}
+
+
 
 # To run the app, use the following command:
 # uvicorn app:app --reload --host 0.0.0.0 --port 7020
