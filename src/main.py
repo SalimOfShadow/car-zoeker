@@ -5,7 +5,7 @@ from ultralytics import YOLO
 from src.utils.util import read_license_plate
 from src.utils.fetch_vehicle_data import fetch_vehicle_data
 
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File
 app = FastAPI()
 
 license_plate_detector = YOLO('./models/license_plate_detector.pt')
@@ -17,6 +17,9 @@ async def upload_image(file: UploadFile = File(...)):
         image_bytes = await file.read()
         np_array = np.frombuffer(image_bytes, np.uint8)
         frame = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+        
+        
+        frame = cv2.resize(frame, (800, 600))
         
         # Detect any license plates
         license_plates = license_plate_detector(frame)[0]
@@ -52,10 +55,12 @@ async def upload_image(file: UploadFile = File(...)):
                 return {"license_plate": license_plate_text, "vehicle_data": vehicle_data}
         
         # If no license plate is found
-        return {"message": "Couldn't find data"}
+        raise HTTPException(status_code=400, detail="Couldn't find any license plate data")
     
+    except HTTPException as e:
+        raise e
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail="Internal Server Error: " + str(e))
 
 
 
