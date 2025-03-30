@@ -17,10 +17,9 @@ async def upload_image(file: UploadFile = File(...)):
         image_bytes = await file.read()
         np_array = np.frombuffer(image_bytes, np.uint8)
         frame = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
-        
-        
-        frame = cv2.resize(frame, (800, 600))
-        
+        height, width = frame.shape[:2]
+
+                
         # Detect any license plates
         license_plates = license_plate_detector(frame)[0]
         
@@ -43,7 +42,7 @@ async def upload_image(file: UploadFile = File(...)):
             lower_yellow = np.array([15, 100, 100])  # Lower bound for darker yellow
             upper_yellow = np.array([40, 255, 255])  # Upper bound for yellow
             yellow_mask = cv2.inRange(hsv_image, lower_yellow, upper_yellow)
-
+            
             license_plate_crop_thresh = cv2.bitwise_and(license_plate_crop, license_plate_crop, mask=yellow_mask)
             license_plate_crop_gray = cv2.cvtColor(license_plate_crop_thresh, cv2.COLOR_BGR2GRAY)
             _, license_plate_crop_thresh = cv2.threshold(license_plate_crop_gray, 64, 255, cv2.THRESH_BINARY_INV)
