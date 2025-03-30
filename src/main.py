@@ -60,7 +60,7 @@ async def upload_image(file: UploadFile = File(...)):
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal Server Error: " + str(e))
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
 

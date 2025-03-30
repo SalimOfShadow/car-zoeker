@@ -179,3 +179,8 @@ cython_debug/
 *.mp4
 *.onnx
 .vscode
+*.png
+*.jpg
+*.webp
+*.jpeg
+*.gif
